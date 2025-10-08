@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tianshun's Coding Journal</title>
+<style>
+  body {
+    background-color: #0f111a;
+    color: #d1d5db;
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    text-align: center;
+    padding: 30px 0;
+    border-bottom: 1px solid #1f2937;
+  }
+
+  header h1 {
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff;
+    letter-spacing: 2px;
+  }
+
+  .entry {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #00ffff33;
+  }
+
+  .date {
+    color: #60a5fa;
+    font-size: 0.9em;
+    margin-bottom: 8px;
+  }
+
+  .title {
+    color: #93c5fd;
+    font-size: 1.4em;
+    margin-bottom: 15px;
+  }
+
+  .content {
+    line-height: 1.7em;
+    white-space: pre-line;
+    font-size: 1em;
+  }
+
+  footer {
+    text-align: center;
+    color: #6b7280;
+    padding: 20px;
+    border-top: 1px solid #1f2937;
+  }
+
+  /* 打字机动画 */
+  .typing {
+    border-right: .1em solid #00ffff;
+    animation: typing 3s steps(30, end), blink-caret 0.75s step-end infinite;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  @keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+  }
+
+  @keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: #00ffff; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="typing">Tianshun's AIR QUEST Journal</h1>
+</header>
+
+<section class="entry">
+  <div class="date">🗓 October 8, 2025</div>
+  <div class="title">Reflections on Project 1: AIR QUEST</div>
+  <div class="content">
+    This week, I finished building my first Python terminal app: AIR QUEST.  
+    The idea started from curiosity — I wanted to make air quality data feel more alive, not just numbers.
+
+    By using the [requests] library, I could connect directly to the World Air Quality API.  
+    [Rich] and [PyFiglet] added a playful and artistic layer — colors, ASCII banners, progress bars — all inside the terminal.  
+    It felt like designing a mini interactive world in text form.
+
+    The most exciting part was turning something environmental and scientific into something expressive.  
+    Watching the AQI bar grow, seeing emojis change with the air quality — it gave personality to data.  
+    Even though it runs entirely in the console, it feels emotional, like a digital creature breathing city air.
+
+    I also learned that creative coding isn’t only about visuals;  
+    even the terminal can become a stage for art, humor, and interactivity.
+  </div>
+</section>
+
+<footer>
+  © 2025 Tianshun Wu — Computation Arts Journal
+</footer>
+
+</body>
+</html>
