@@ -8,7 +8,8 @@
   html, body {
     margin: 0;
     padding: 0;
-    height: 100%;
+    height: auto; 
+    min-height: 100%;
     overflow-x: hidden;
     background: #0f111a;
     color: #d1d5db;
@@ -43,11 +44,11 @@
     max-width: 800px;
     margin: 60px auto;
     padding: 25px;
-    background: rgba(17, 24, 39, 0.8);
+    background: rgba(17, 24, 39, 0.85);
     border: 1px solid #1f2937;
     border-radius: 10px;
     box-shadow: 0 0 15px #00ffff33;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(6px);
     opacity: 0;
     transform: translateY(20px);
     animation: fadeIn 1s forwards;
@@ -87,7 +88,7 @@
     z-index: 2;
   }
 
-  /* animation */
+  /* typing animation */
   .typing {
     border-right: .1em solid #00ffff;
     animation: typing 3s steps(30, end), blink-caret 0.75s step-end infinite;
@@ -104,6 +105,48 @@
   @keyframes blink-caret {
     from, to { border-color: transparent }
     50% { border-color: #00ffff; }
+  }
+
+  /* AQI input + button */
+  .aqi-box {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #00ffff55;
+    border-radius: 8px;
+    text-align: center;
+    background: rgba(0,0,0,0.3);
+  }
+
+  input {
+    background: transparent;
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    outline: none;
+    width: 160px;
+  }
+
+  button {
+    background: #00ffff22;
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    margin-left: 5px;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  button:hover {
+    background: #00ffff55;
+  }
+
+  #aqiResult {
+    margin-top: 10px;
+    font-size: 1em;
+    color: #93c5fd;
   }
 </style>
 </head>
@@ -130,6 +173,14 @@ The most exciting part was turning something environmental and scientific into s
 Watching the AQI bar grow, seeing emojis change with the air quality — it gave personality to data.  
 Even though it runs entirely in the console, it feels emotional, like a digital creature breathing city air.
 
+Below is a small web version of my AIR QUEST — you can enter any city to see real-time air quality:
+  </div>
+
+  <!-- API  -->
+  <div class="aqi-box">
+    <input type="text" id="city" placeholder="Enter city (e.g. Montreal)">
+    <button onclick="fetchAQI()">Check Air</button>
+    <div id="aqiResult">🌍 Waiting for input...</div>
   </div>
 </section>
 
@@ -138,10 +189,9 @@ Even though it runs entirely in the console, it feels emotional, like a digital 
 </footer>
 
 <script>
-/* animation */
+/* 🌫 background animation */
 const canvas = document.getElementById('particles');
 const ctx = canvas.getContext('2d');
-
 let particlesArray = [];
 const numParticles = 80;
 
@@ -164,7 +214,6 @@ class Particle {
   update() {
     this.x += this.speedX;
     this.y += this.speedY;
-
     if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
     if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
   }
@@ -210,9 +259,40 @@ function animate() {
   connectParticles();
   requestAnimationFrame(animate);
 }
-
 init();
 animate();
+
+/* 🌍 AQI search */
+async function fetchAQI() {
+  const city = document.getElementById("city").value || "Montreal";
+  const resultBox = document.getElementById("aqiResult");
+  resultBox.innerText = `🌫 Fetching air data for ${city}...`;
+
+  try {
+    const token = "0fef46e2cdafa6e579599bc56588fdf44a90e448";
+    const res = await fetch(`https://api.waqi.info/search/?token=${token}&keyword=${city}`);
+    const data = await res.json();
+
+    if (data.status === "ok" && data.data.length > 0) {
+      const aqi = parseInt(data.data[0].aqi);
+      const station = data.data[0].station.name;
+
+      let mood, color;
+      if (aqi < 50) { mood = "🌿 Good"; color = "#00ffcc"; }
+      else if (aqi < 100) { mood = "🌤 Moderate"; color = "#ffff66"; }
+      else if (aqi < 150) { mood = "😷 Unhealthy"; color = "#ff9933"; }
+      else { mood = "💀 Hazardous"; color = "#ff3333"; }
+
+      resultBox.innerHTML = 
+        `📍 <b>${station}</b><br>` +
+        `AQI: <b style="color:${color}">${aqi}</b> — ${mood}`;
+    } else {
+      resultBox.innerText = "❌ City not found.";
+    }
+  } catch (err) {
+    resultBox.innerText = "⚠️ Failed to fetch data.";
+  }
+}
 </script>
 
 </body>
