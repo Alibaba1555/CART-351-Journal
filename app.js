@@ -293,3 +293,43 @@ if (donutCanvas) {
   animateDonuts();
 }
 
+// ------------------------------
+// Week 3 Enhancements
+// ------------------------------
+
+// 选出 Week 3 这块
+const week3Entry = Array.from(document.querySelectorAll(".entry")).find(e =>
+  e.innerHTML.includes("Reflection: FLASK III and FETCH")
+);
+
+if (week3Entry) {
+  // 滚动进入时淡入显示
+  function fadeInWeek3() {
+    const rect = week3Entry.getBoundingClientRect();
+    if (rect.top < window.innerHeight - 100) {
+      week3Entry.style.transition = "opacity 1s ease, transform 1s ease";
+      week3Entry.style.opacity = "1";
+      week3Entry.style.transform = "translateY(0)";
+      window.removeEventListener("scroll", fadeInWeek3);
+    }
+  }
+  window.addEventListener("scroll", fadeInWeek3);
+
+  // 标题呼吸光
+  const week3Title = week3Entry.querySelector(".title");
+  if (week3Title) {
+    setInterval(() => {
+      week3Title.style.textShadow = `0 0 ${Math.random() * 8}px #00ffff`;
+    }, 600);
+  }
+
+  // 鼠标悬停 → 背景空气变色
+  week3Entry.addEventListener("mouseenter", () => {
+    week3Entry.style.transition = "background 2s";
+    week3Entry.style.background = "rgba(20, 35, 55, 0.9)";
+  });
+  week3Entry.addEventListener("mouseleave", () => {
+    week3Entry.style.background = "rgba(17, 24, 39, 0.85)";
+  });
+}
+
