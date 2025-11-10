@@ -103,6 +103,42 @@ I redesigned the site to look like a small “donut shop” web page rather than
   </div>
 </section>
 
+<!-- Week 5 -->
+<section class="entry">
+  <div class="date">Week 5 — November 10, 2025</div>
+  <div class="title">Reflection: Project II — Collective Drums</div>
+  <div class="content">
+    My partner and I developed <strong>Collective Drums</strong>, an interactive platform where each user creates a 6×16 rhythm pattern and contributes it to a shared musical composition.  
+    The project merges sound design, data visualization, and community participation into one evolving experience.  
+
+    Technically, this week was a breakthrough.  
+    I learned how to connect front-end JavaScript and Tone.js with Flask routes using the <code>fetch()</code> API,  
+    handle JSON data storage on the server, and update the page dynamically as new users contribute.  
+    Adding new features like <strong>sound kit selection</strong>, a <strong>message system</strong>, and a <strong>recording function</strong> made the application feel like a living instrument rather than just a web tool.  
+
+    This week’s process challenged everything I had learned so far in Python, Flask, and web interaction design.  
+    The result isn’t only a working app, but also a reflection on how creative coding can transform participation into shared experience.
+  </div>
+  <section class="entry" id="mini-drum">
+  <div class="title">Mini Drum Preview</div>
+  <div class="content">
+    <div class="mini-controls">
+      <label>BPM <input id="miniBpm" type="range" min="60" max="180" value="110"> <span id="miniBpmVal">110</span></label>
+      <button id="miniPlay">Play</button>
+      <button id="miniStop">Stop</button>
+      <button id="miniRandom">Random</button>
+      <button id="miniClear">Clear</button>
+    </div>
+    <div class="mini-legend">
+      <span>Kick</span><span>Snare</span><span>Hat</span><span>Clap</span>
+    </div>
+    <div id="miniGrid" class="mini-grid"></div>
+  </div>
+</section>
+<script src="https://unpkg.com/tone@14.8.49/build/Tone.js"></script>
+</section>
+
+
 <footer>
   © 2025 Tianshun Wu — Computation Arts  CART 351 Journal
 </footer>

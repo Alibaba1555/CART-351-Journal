@@ -333,3 +333,99 @@ if (week3Entry) {
   });
 }
 
+//week5
+(function(){
+  const R=4,C=8;
+  let g=Array.from({length:R},()=>Array(C).fill(0));
+  let loop=null, step=0, vis=-1;
+  const $=s=>document.querySelector(s);
+
+  function build(){
+    const grid=$("#miniGrid");
+    grid.innerHTML="";
+    for(let r=0;r<R;r++){
+      for(let c=0;c<C;c++){
+        const cell=document.createElement("div");
+        cell.className="mini-cell";
+        cell.dataset.r=r; cell.dataset.c=c;
+        cell.onclick=()=>{ g[r][c]=g[r][c]?0:1; cell.classList.toggle("on",!!g[r][c]); };
+        grid.appendChild(cell);
+      }
+    }
+  }
+  function syncUI(){
+    document.querySelectorAll("#miniGrid .mini-cell").forEach(el=>{
+      const r=+el.dataset.r, c=+el.dataset.c;
+      el.classList.toggle("on", !!g[r][c]);
+    });
+  }
+  function colCells(c){ return Array.from(document.querySelectorAll(`#miniGrid .mini-cell[data-c="${c}"]`)); }
+  function hi(c){
+    if(vis>=0) colCells(vis).forEach(el=>el.classList.remove("now"));
+    colCells(c).forEach(el=>{ el.classList.add("now"); el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),140); });
+    vis=c;
+  }
+  function kit(){
+    return [
+      new Tone.MembraneSynth({octaves:2,pitchDecay:.02,envelope:{attack:.001,decay:.2,sustain:0,release:.05}}).toDestination(),
+      new Tone.NoiseSynth({noise:{type:'white'},envelope:{attack:.001,decay:.12,sustain:0}}).toDestination(),
+      new Tone.MetalSynth({frequency:400,modulationIndex:8,resonance:300,harmonicity:10}).toDestination(),
+      new Tone.Synth({oscillator:{type:'square'},envelope:{attack:.005,decay:.08,sustain:.1,release:.1}}).toDestination()
+    ];
+  }
+  let synths=null;
+  function ensure(){ if(!synths) synths=kit(); return synths; }
+
+  function tune(){
+    try{ Tone.context.latencyHint="interactive"; }catch(e){}
+    Tone.Draw.anticipation=0.02;
+  }
+
+  async function play(){
+    await Tone.start(); tune(); ensure();
+    stop();
+    step=0; vis=-1;
+    document.querySelectorAll("#miniGrid .mini-cell.now").forEach(el=>el.classList.remove("now"));
+    loop=new Tone.Loop((time)=>{
+      const s=step;
+      Tone.Draw.schedule(()=>hi(s), time);
+      for(let r=0;r<R;r++){
+        if(g[r][s]){
+          if(r===0) synths[0].triggerAttackRelease("C2","8n",time,.8);
+          else if(r===1) synths[1].triggerAttackRelease("8n",time,.7);
+          else if(r===2) synths[2].triggerAttackRelease("16n",time,.6);
+          else if(r===3) synths[3].triggerAttackRelease("C4","16n",time,.5);
+        }
+      }
+      step=(step+1)%C;
+    },"16n");
+    Tone.Transport.bpm.value=+($("#miniBpm").value||110);
+    loop.start(0); Tone.Transport.start();
+  }
+
+  function stop(){
+    if(loop){ loop.stop(); loop.dispose(); loop=null; }
+    Tone.Transport.stop();
+    document.querySelectorAll("#miniGrid .mini-cell.now").forEach(el=>el.classList.remove("now"));
+    vis=-1;
+  }
+
+  function rand(){
+    g=g.map(row=>row.map(()=>Math.random()<0.25?1:0));
+    syncUI();
+  }
+  function clr(){
+    g=g.map(row=>row.map(()=>0));
+    syncUI();
+  }
+
+  window.addEventListener("DOMContentLoaded", ()=>{
+    build(); syncUI();
+    $("#miniBpm").addEventListener("input", e=>{ $("#miniBpmVal").textContent=e.target.value; Tone.Transport.bpm.value=+e.target.value; });
+    $("#miniBpmVal").textContent=$("#miniBpm").value;
+    $("#miniPlay").onclick=play;
+    $("#miniStop").onclick=stop;
+    $("#miniRandom").onclick=rand;
+    $("#miniClear").onclick=clr;
+  });
+})();
