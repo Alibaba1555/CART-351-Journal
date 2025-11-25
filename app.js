@@ -429,3 +429,103 @@ if (week3Entry) {
     $("#miniClear").onclick=clr;
   });
 })();
+
+// =============================
+// Mini Pattern Generator (Week 7)
+// =============================
+// 只在 Week 7 页面存在时运行
+document.addEventListener("DOMContentLoaded", () => {
+  const canvas = document.getElementById("patternCanvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const btn = document.getElementById("generatePattern");
+  const toggleBtn = document.getElementById("toggleParticles");
+
+  const moods = ["happy", "neutral", "calm", "serene", "well"];
+  const colors = {
+    happy: "#ffb347",
+    neutral: "#9ecfff",
+    calm: "#8ff7d3",
+    serene: "#d3b0ff",
+    well: "#cfcfcf",
+  };
+
+  let dots = [];
+  let centers = [];
+  let running = true;
+
+  function resizeCanvas() {
+    const entry = document.querySelector(".entry.week7");
+    if (!entry) return;
+
+    const rect = entry.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    centers = moods.map((m, i) => ({
+      mood: m,
+      x: (i + 0.5) * (canvas.width / moods.length),
+      y: canvas.height * 0.35
+    }));
+  }
+
+  function buildDots() {
+    dots = [];
+    const total = 220;
+    for (let i = 0; i < total; i++) {
+      const c = centers[Math.floor(Math.random() * centers.length)];
+      dots.push({
+        mood: c.mood,
+        x: c.x + (Math.random() - 0.5) * 60,
+        y: c.y + (Math.random() - 0.5) * 60,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        r: 3 + Math.random() * 3
+      });
+    }
+  }
+
+  function draw() {
+    requestAnimationFrame(draw);
+    if (!running) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const d of dots) {
+      d.x += d.vx;
+      d.y += d.vy;
+
+      if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
+      if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
+
+      ctx.fillStyle = colors[d.mood];
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  resizeCanvas();
+  buildDots();
+  draw();
+
+  if (btn) {
+    btn.addEventListener("click", () => {
+      resizeCanvas();
+      buildDots();
+    });
+  }
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      running = !running;
+      toggleBtn.textContent = running ? "Stop Background" : "Start Background";
+    });
+  }
+
+  window.addEventListener("resize", () => {
+    resizeCanvas();
+    buildDots();
+  });
+});
+

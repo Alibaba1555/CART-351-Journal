@@ -139,7 +139,45 @@ I redesigned the site to look like a small “donut shop” web page rather than
 </section>
 
 <!-- Week 6 -->
+<section class="entry">
+  <div class="date">Week 6 — November 17, 2025</div>
+  <div class="title">EX 4</div>
+  </section>
 
+  <!-- Week 7 -->
+<section class="entry week7">
+  <canvas id="patternCanvas"></canvas>
+
+  <div class="date">Week 7 — November 24, 2025</div>
+  <div class="title">Reflection: Exercise V — Patterns & MongoDB</div>
+
+  <div class="content">
+    This week was all about connecting data to visual meaning.  
+    I worked on Exercise V, where we used MongoDB Atlas as a real database and wrote queries that control different visual patterns.  
+    Compared to earlier Flask exercises, this felt like a full system: server logic, database structure, and front-end visualization all depended on each other.
+
+    The first challenge was setting up my own MongoDB collection correctly and making sure the insert script only ran once.  
+    Seeing 1000 randomized entries appear in Atlas was satisfying, it made the project feel real, like I was working with an actual survey dataset instead of dummy lists.
+
+    Writing the queries was surprisingly fun.  
+    I started to understand how MongoDB filtering and sorting can shape the story the dataset tells.  
+    Queries like “after-mood positive only,” “events grouped by name,” or “negative moods under different weather” reminded me that the database isn’t just storage, it’s already a kind of logic engine.
+
+    The most time-consuming part was visualization.  
+    Every query needed a unique pattern, so I had to design visual systems instead of just drawing points randomly.  
+    I ended up making animated clusters for positive moods, timeline-style stripes for events, stacked cloud bars for affect strength on Monday/Tuesday, and bamboo-tube columns for negative moods grouped by weather.  
+    Adding movement made the patterns easier to read and also more alive, like the data was breathing instead of sitting still.
+
+    Overall, this exercise tied together everything we’ve been learning:  
+    Flask routes, fetch communication, JSON results, and now real database logic.  
+    It felt like stepping from “coding exercises” into something closer to real creative data tools.
+  </div>
+   <button id="generatePattern">Generate Mini Pattern</button>
+ 
+  </div>
+</section>
+
+</section>
 
 <footer>
   © 2025 Tianshun Wu — Computation Arts  CART 351 Journal

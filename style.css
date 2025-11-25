@@ -250,3 +250,43 @@ details summary {
 @keyframes miniBeat{0%{transform:scale(1)}35%{transform:scale(1.08)}100%{transform:scale(1)}}
 #miniBpm{vertical-align:middle}
 #miniBpmVal{display:inline-block;min-width:32px;text-align:center;color:#bfc6d9}
+
+/* week7 */
+.entry.week7{
+  position: relative;
+  overflow: hidden;
+}
+
+.entry.week7 #patternCanvas{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.1;   /* ← 透明度 50% */
+}
+
+.entry.week7 .date,
+.entry.week7 .title,
+.entry.week7 .content{
+  position: relative;
+  z-index: 1;
+}
+
+.toggle-btn {
+  padding: 6px 16px;
+  margin-bottom: 10px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  backdrop-filter: blur(4px);
+  transition: 0.2s;
+}
+
+.toggle-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
