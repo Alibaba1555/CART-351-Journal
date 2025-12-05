@@ -199,6 +199,123 @@ I redesigned the site to look like a small “donut shop” web page rather than
   </div>
 </section>
 
+<!-- Week 8 -->
+<section class="entry week8">
+  <div class="date">Week 8 — December 5, 2025</div>
+  <div class="title">Final Project: RONIN SHOWDOWN — Multiplayer Fighting Game</div>
+  
+  <div class="content">
+    For our final project, my partner Junming He and I created RONIN SHOWDOWN, a real-time multiplayer fighting game using Flask, Socket.IO, and MongoDB.  
+    This project combines everything we learned throughout the semester: server-side logic, WebSocket communication, database integration, and canvas-based game rendering.
+
+    The game supports two active players fighting in real-time.  
+    Each match runs on a 60-second timer with dynamic health tracking, win/loss recording in MongoDB, and multiple stage selections.  
+    Players can customize their warrior colors and view global leaderboards showing all player statistics.
+
+    Technically, this was the most challenging project yet.  
+    Synchronizing game state across multiple clients required careful Socket.IO event handling.  
+    We had to manage player positions, attack animations, collision detection, and health updates in real-time.  
+    The MongoDB integration tracks persistent player data including wins, losses, and last active timestamps.
+
+    The game features multiple fighting stages with video backgrounds, sprite-based character animations, and retro arcade-style UI design inspired by classic fighting games.  
+    We implemented a complete game loop with preparation phases, active combat, victory conditions, and automatic round resets.
+
+    Building this project taught us how to create a complete networked application from scratch.  
+    It required architecting both client and server logic, handling edge cases like player disconnections mid-match, and optimizing real-time data synchronization.  
+    The result is a fully functional multiplayer game that demonstrates the power of modern web technologies.
+  </div>
+
+  <div class="game-demo">
+    <h3> Try the Game Demo (Single Player vs AI)</h3>
+    
+    <div class="map-selector">
+      <label>Select Stage:</label>
+      <select id="stageSelector">
+        <option value="Ayutthaya Temple Ruins, Thailand.mp4">🏛️ Ayutthaya Temple</option>
+        <option value="New York, U.S.A.mp4">🗽 New York</option>
+        <option value="Suzaku Castle, Japan.mp4">🏯 Suzaku Castle</option>
+      </select>
+    </div>
+    
+    <div class="game-info">
+      <p>Controls: <strong>A/D</strong> Move | <strong>K</strong> Jump | <strong>J</strong> Attack | <strong>Enter</strong> Start</p>
+    </div>
+    
+    <div class="game-container">
+      <div class="game-hud">
+        <div class="hud-left">
+          <div class="player-label">PLAYER</div>
+          <div class="health-bar">
+            <div class="health-fill" id="playerHealth"></div>
+          </div>
+        </div>
+        
+        <div class="game-timer" id="gameTimer">60</div>
+        
+        <div class="hud-right">
+          <div class="player-label">AI OPPONENT</div>
+          <div class="health-bar">
+            <div class="health-fill enemy" id="enemyHealth"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="game-canvas-wrapper">
+  <video id="gameBgVideo" class="game-bg-video" loop playsinline></video>
+  <canvas id="fightingGame"></canvas>
+</div>
+
+      
+      <div class="game-overlay" id="gameOverlay">
+        <div class="overlay-text" id="overlayText">PRESS ENTER TO START</div>
+        <div class="overlay-subtext">Fight until time runs out or opponent's HP reaches 0!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-showcase">
+    <div class="project-features">
+      <h3>Key Features</h3>
+      <ul>
+        <li>🎮 Real-time multiplayer combat with Socket.IO</li>
+        <li>🗺️ Multiple unique fighting stages with video backgrounds</li>
+        <li>💾 MongoDB integration for persistent player statistics</li>
+        <li>🏆 Global leaderboard with win/loss tracking</li>
+        <li>🔊 Retro arcade sound effects and BGM</li>
+        <li>📱 Responsive canvas rendering at 60 FPS</li>
+      </ul>
+    </div>
+
+    <div class="project-tech">
+      <h3>Technology Stack</h3>
+      <div class="tech-grid">
+        <div class="tech-item">
+          <strong>Backend</strong>
+          <span>Flask + Socket.IO + Python</span>
+        </div>
+        <div class="tech-item">
+          <strong>Database</strong>
+          <span>MongoDB Atlas</span>
+        </div>
+        <div class="tech-item">
+          <strong>Frontend</strong>
+          <span>HTML5 Canvas + JavaScript</span>
+        </div>
+        <div class="tech-item">
+          <strong>Real-time</strong>
+          <span>WebSocket Communication</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-links">
+      <a href="https://github.com/Alibaba1555/CART-351-A" target="_blank" class="project-btn project-btn-primary">
+        💾 Project Repository
+      </a>
+    </div>
+  </div>
+</section>
+
 </section>
 
 <footer>

@@ -712,3 +712,549 @@ document.addEventListener("DOMContentLoaded", () => {
   initParticles();
   animate();
 });
+
+// Enhanced Fighting Game with Real Sprites and Video Background
+(function() {
+  const canvas = document.getElementById('fightingGame');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  const overlay = document.getElementById('gameOverlay');
+  const overlayText = document.getElementById('overlayText');
+  const timerDisplay = document.getElementById('gameTimer');
+  const playerHealthBar = document.getElementById('playerHealth');
+  const enemyHealthBar = document.getElementById('enemyHealth');
+  const bgVideo = document.getElementById('gameBgVideo');
+  
+  let gameActive = false;
+  let gameTimer = 60;
+  let timerInterval = null;
+  
+  function resizeCanvas() {
+    const container = canvas.parentElement;
+    canvas.width = container.clientWidth;
+    canvas.height = 400;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  
+  const gravity = 0.8;
+  const groundY = 340;
+  const p_height = 150;
+  const p_width = 50;
+  
+  class Sprite {
+    constructor({ position, imageSrc, scale = 1, framesMax = 1, offset = { x: 0, y: 0 } }) {
+      this.position = position;
+      this.height = p_height;
+      this.width = p_width;
+      this.image = new Image();
+      this.image.src = imageSrc;
+      this.scale = scale;
+      this.framesMax = framesMax;
+      this.frameCurrent = 0;
+      this.framesElapsed = 0;
+      this.framesHold = 5;
+      this.offset = offset;
+    }
+    
+    draw() {
+      if (!this.image.complete) return;
+      
+      ctx.drawImage(
+        this.image,
+        this.frameCurrent * (this.image.width / this.framesMax),
+        0,
+        this.image.width / this.framesMax,
+        this.image.height,
+        this.position.x - this.offset.x,
+        this.position.y - this.offset.y,
+        (this.image.width / this.framesMax) * this.scale,
+        this.image.height * this.scale
+      );
+    }
+    
+    animateFrames() {
+      this.framesElapsed++;
+      if (this.framesElapsed % this.framesHold === 0) {
+        if (this.frameCurrent < this.framesMax - 1) {
+          this.frameCurrent++;
+        } else {
+          if (this.state === 'attack') {
+            this.isAttacking = false;
+            this.setState('idle');
+          }
+          if (this.state === 'takeHit') {
+            this.setState('idle');
+          }
+          this.frameCurrent = 0;
+        }
+      }
+    }
+    
+    update() {
+      this.draw();
+      this.animateFrames();
+    }
+  }
+  
+  class Fighter extends Sprite {
+    constructor({
+      position,
+      velocity,
+      color = '#ff0000',
+      isPlayer = true,
+      sprites
+    }) {
+      super({
+        position,
+        imageSrc: sprites.idle.imageSrc,
+        scale: 2.5,
+        framesMax: sprites.idle.framesMax,
+        offset: sprites.idle.offset
+      });
+      
+      this.velocity = velocity;
+      this.isPlayer = isPlayer;
+      this.color = color;
+      this.health = 100;
+      this.maxHealth = 100;
+      this.facing = isPlayer ? 'right' : 'left';
+      this.isAttacking = false;
+      this.state = 'idle';
+      this.sprites = sprites;
+      this.attackCooldown = 0;
+      this.hitCooldown = 0;
+      
+      this.attackBox = {
+        position: { x: this.position.x, y: this.position.y },
+        width: 230,
+        height: 40,
+        offset: { x: 0, y: 20 }
+      };
+      
+      for (const key in this.sprites) {
+        const sprite = this.sprites[key];
+        sprite.image = new Image();
+        sprite.image.src = sprite.imageSrc;
+        
+        if (color !== '#ff0000') {
+          sprite.image.onload = () => {
+            sprite.tintedImage = this.generateTintedImage(sprite.image);
+          };
+        }
+      }
+    }
+    
+    generateTintedImage(img) {
+      if (!this.color || this.color === '#ff0000') return img;
+      
+      const buffer = document.createElement('canvas');
+      buffer.width = img.width;
+      buffer.height = img.height;
+      const bufCtx = buffer.getContext('2d');
+      
+      bufCtx.drawImage(img, 0, 0);
+      
+      const imageData = bufCtx.getImageData(0, 0, buffer.width, buffer.height);
+      const data = imageData.data;
+      const targetColor = this.hexToRgb(this.color);
+      
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+        
+        if (a > 0) {
+          const isRed = r > g && r > b && r > 120 && g < 100 && b < 100 &&
+                        (r - g) > 50 && (r - b) > 50;
+          
+          if (isRed) {
+            const intensity = r / 255;
+            data[i] = targetColor.r * intensity;
+            data[i + 1] = targetColor.g * intensity;
+            data[i + 2] = targetColor.b * intensity;
+          }
+        }
+      }
+      
+      bufCtx.putImageData(imageData, 0, 0);
+      return buffer;
+    }
+    
+    hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 255, g: 0, b: 0 };
+    }
+    
+    setState(newState) {
+      if (this.state === newState) return;
+      if (!this.sprites[newState]) return;
+      
+      const sprite = this.sprites[newState];
+      this.image = sprite.tintedImage || sprite.image;
+      this.framesMax = sprite.framesMax;
+      this.frameCurrent = 0;
+      this.offset = sprite.offset;
+      this.state = newState;
+    }
+    
+    draw() {
+      const centerX = this.position.x + this.width / 2;
+      const feetY = this.position.y + this.height;
+      const distanceToGround = Math.max(0, groundY - feetY);
+      let shadowScale = 1 - (distanceToGround / 300);
+      if (shadowScale < 0.2) shadowScale = 0.2;
+      
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.5 * shadowScale})`;
+      ctx.ellipse(centerX, groundY + 20, 40 * shadowScale, 12 * shadowScale, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.save();
+      
+      if (this.facing === 'left') {
+        const imageWidth = (this.image.width / this.framesMax) * this.scale;
+        const drawX = this.position.x - this.offset.x;
+        ctx.translate(drawX + imageWidth / 2, this.position.y);
+        ctx.scale(-1, 1);
+        ctx.translate(-(drawX + imageWidth / 2), -this.position.y);
+      }
+      
+      super.draw();
+      ctx.restore();
+    }
+    
+    update() {
+      this.draw();
+      this.animateFrames();
+      this.updateAttackBox();
+      
+      this.position.x += this.velocity.x;
+      this.position.y += this.velocity.y;
+      
+      if (this.position.x < 0) this.position.x = 0;
+      if (this.position.x > canvas.width - this.width) {
+        this.position.x = canvas.width - this.width;
+      }
+      
+      if (this.position.y + this.height + this.velocity.y >= groundY) {
+        this.velocity.y = 0;
+        this.position.y = groundY - this.height;
+        
+        if (this.state !== 'attack' && this.state !== 'takeHit') {
+          if (this.velocity.x !== 0) {
+            this.setState('run');
+          } else {
+            this.setState('idle');
+          }
+        }
+      } else {
+        this.velocity.y += gravity;
+        
+        if (this.velocity.y < 0) {
+          this.setState('jump');
+        } else if (this.velocity.y > 0) {
+          this.setState('fall');
+        }
+      }
+      
+      this.velocity.x *= 0.85;
+      
+      if (this.attackCooldown > 0) this.attackCooldown--;
+      if (this.attackCooldown === 0) this.isAttacking = false;
+      
+      if (this.hitCooldown > 0) this.hitCooldown--;
+    }
+    
+    updateAttackBox() {
+      if (this.facing === "right") {
+        this.attackBox.offset.x = this.width;
+      } else {
+        this.attackBox.offset.x = -this.attackBox.width;
+      }
+      this.attackBox.position.x = this.position.x + this.attackBox.offset.x;
+      this.attackBox.position.y = this.position.y + this.attackBox.offset.y;
+    }
+    
+    attack() {
+      if (this.attackCooldown === 0 && this.state !== 'takeHit') {
+        this.setState('attack');
+        this.isAttacking = true;
+        this.attackCooldown = 40;
+        return true;
+      }
+      return false;
+    }
+    
+    jump() {
+      if (this.position.y + this.height >= groundY - 5) {
+        this.velocity.y = -18;
+      }
+    }
+    
+    moveLeft() {
+      this.velocity.x = -5;
+      this.facing = 'left';
+    }
+    
+    moveRight() {
+      this.velocity.x = 5;
+      this.facing = 'right';
+    }
+    
+    takeDamage(amount) {
+      if (this.hitCooldown === 0) {
+        this.health = Math.max(0, this.health - amount);
+        this.setState('takeHit');
+        this.hitCooldown = 20;
+      }
+    }
+    
+    getAttackBox() {
+      if (!this.isAttacking) return null;
+      return this.attackBox;
+    }
+  }
+  
+  const spriteConfig = {
+    idle: {
+      imageSrc: '/assets/character/Idle.png',
+      framesMax: 8,
+      offset: { x: 215, y: 157 }
+    },
+    run: {
+      imageSrc: '/assets/character/Run.png',
+      framesMax: 8,
+      offset: { x: 215, y: 157 }
+    },
+    jump: {
+      imageSrc: '/assets/character/Jump.png',
+      framesMax: 2,
+      offset: { x: 215, y: 157 }
+    },
+    fall: {
+      imageSrc: '/assets/character/Fall.png',
+      framesMax: 2,
+      offset: { x: 215, y: 157 }
+    },
+    attack: {
+      imageSrc: '/assets/character/Attack.png',
+      framesMax: 6,
+      offset: { x: 215, y: 157 }
+    },
+    takeHit: {
+      imageSrc: '/assets/character/Take Hit.png',
+      framesMax: 4,
+      offset: { x: 215, y: 157 }
+    }
+  };
+  
+  const player = new Fighter({
+    position: { x: 100, y: 0 },
+    velocity: { x: 0, y: 0 },
+    color: '#00ff88',
+    isPlayer: true,
+    sprites: JSON.parse(JSON.stringify(spriteConfig))
+  });
+  
+  const enemy = new Fighter({
+    position: { x: canvas.width - 150, y: 0 },
+    velocity: { x: 0, y: 0 },
+    color: '#ff4444',
+    isPlayer: false,
+    sprites: JSON.parse(JSON.stringify(spriteConfig))
+  });
+  
+  let aiTimer = 0;
+  let aiAction = null;
+  
+  function aiLogic() {
+    if (!gameActive) return;
+    
+    aiTimer++;
+    if (aiTimer > 60) {
+      aiTimer = 0;
+      const rand = Math.random();
+      const distance = Math.abs(player.position.x - enemy.position.x);
+      
+      if (distance < 150 && rand < 0.4) {
+        aiAction = 'attack';
+      } else if (rand < 0.5) {
+        aiAction = 'jump';
+      } else if (rand < 0.7) {
+        aiAction = 'moveToPlayer';
+      } else {
+        aiAction = 'moveAway';
+      }
+    }
+    
+    const distance = Math.abs(player.position.x - enemy.position.x);
+    
+    if (aiAction === 'attack' && distance < 150) {
+      if (enemy.attack()) aiAction = null;
+    } else if (aiAction === 'jump' && Math.random() < 0.05) {
+      enemy.jump();
+      aiAction = null;
+    } else if (aiAction === 'moveToPlayer') {
+      if (player.position.x < enemy.position.x) {
+        enemy.moveLeft();
+      } else {
+        enemy.moveRight();
+      }
+    } else if (aiAction === 'moveAway') {
+      if (player.position.x < enemy.position.x) {
+        enemy.moveRight();
+      } else {
+        enemy.moveLeft();
+      }
+    }
+  }
+  
+  function checkCollision(attacker, defender) {
+    const attackBox = attacker.getAttackBox();
+    if (!attackBox) return false;
+    
+    return attackBox.position.x < defender.position.x + defender.width &&
+           attackBox.position.x + attackBox.width > defender.position.x &&
+           attackBox.position.y < defender.position.y + defender.height &&
+           attackBox.position.y + attackBox.height > defender.position.y;
+  }
+  
+  const keys = {};
+window.addEventListener('keydown', (e) => {
+  keys[e.key.toLowerCase()] = true;
+
+  if (e.key === 'Enter' && !gameActive) {
+    startGame();
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  keys[e.key.toLowerCase()] = false;
+});
+
+  
+  function updateHealthBars() {
+    const playerPercent = (player.health / player.maxHealth) * 100;
+    const enemyPercent = (enemy.health / enemy.maxHealth) * 100;
+    playerHealthBar.style.width = playerPercent + '%';
+    enemyHealthBar.style.width = enemyPercent + '%';
+  }
+  
+  function startGame() {
+    gameActive = true;
+    gameTimer = 60;
+    player.health = 100;
+    enemy.health = 100;
+    player.position = { x: 100, y: 0 };
+    enemy.position = { x: canvas.width - 150, y: 0 };
+    player.velocity = { x: 0, y: 0 };
+    enemy.velocity = { x: 0, y: 0 };
+    player.setState('idle');
+    enemy.setState('idle');
+    
+    overlay.classList.add('hidden');
+    updateHealthBars();
+    
+    if (bgVideo) {
+    bgVideo.muted = false;
+    bgVideo.currentTime = 0;
+    bgVideo.volume = 0.6;  
+    bgVideo.play().catch(() => {
+      console.warn('Video play blocked');
+    });
+  }
+    
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (gameActive) {
+        gameTimer--;
+        timerDisplay.textContent = gameTimer;
+        if (gameTimer <= 0) endGame('time');
+      }
+    }, 1000);
+  }
+  
+  function endGame(reason) {
+    gameActive = false;
+    clearInterval(timerInterval);
+    if (bgVideo) {
+    bgVideo.pause();
+    bgVideo.currentTime = 0;   // optional: reset to start
+  }
+    
+    let message = '';
+    if (reason === 'time') {
+      message = player.health > enemy.health ? 'YOU WIN!' :
+                player.health < enemy.health ? 'AI WINS!' : 'DRAW!';
+    } else if (reason === 'playerWin') {
+      message = 'YOU WIN!';
+    } else if (reason === 'enemyWin') {
+      message = 'AI WINS!';
+    }
+    
+    overlayText.textContent = message;
+    overlay.classList.remove('hidden');
+    
+    setTimeout(() => {
+      overlayText.textContent = 'PRESS ENTER TO PLAY AGAIN';
+    }, 2000);
+  }
+  
+  function gameLoop() {
+    requestAnimationFrame(gameLoop);
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (gameActive) {
+      if (keys['a']) player.moveLeft();
+      if (keys['d']) player.moveRight();
+      if (keys['k']) player.jump();
+      if (keys['j']) player.attack();
+      
+      aiLogic();
+      
+      player.update();
+      enemy.update();
+      
+      if (checkCollision(player, enemy)) {
+        enemy.takeDamage(10);
+        if (enemy.health <= 0) endGame('playerWin');
+      }
+      
+      if (checkCollision(enemy, player)) {
+        player.takeDamage(10);
+        if (player.health <= 0) endGame('enemyWin');
+      }
+      
+      updateHealthBars();
+    } else {
+      player.update();
+      enemy.update();
+    }
+  }
+  
+  gameLoop();
+})();
+
+// Map selector functionality
+(function() {
+  const stageSelector = document.getElementById('stageSelector');
+  const bgVideo = document.getElementById('gameBgVideo');
+  
+  if (stageSelector && bgVideo) {
+    function changeStage() {
+      const selectedMap = stageSelector.value;
+      bgVideo.src = '/assets/background/' + selectedMap;
+      bgVideo.load();
+    }
+    
+    stageSelector.addEventListener('change', changeStage);
+    
+    // Set initial stage
+    changeStage();
+  }
+})();
