@@ -116,7 +116,7 @@ if (donutCanvas) {
   resizeDonut();
   window.addEventListener("resize", resizeDonut);
 
-  // icing palettes（糖霜配色）
+  // icing palettes（icing palettes）
   const PALETTES = [
     { base: [330, 92, 75], light: [330, 95, 88] }, // strawberry pink
     { base: [200, 85, 70], light: [200, 95, 86] }, // sky blue
@@ -146,7 +146,7 @@ if (donutCanvas) {
       rotSpeed: 0.001 + Math.random() * 0.002,
       sprinkles: Array.from({ length: 14 + Math.floor(Math.random() * 10) }).map(() => ({
         ang: Math.random() * Math.PI * 2,
-        rad: null, // 运行时填
+        rad: null, // filled at runtime
         len: 6 + Math.random() * 7,
         thk: 1.6 + Math.random() * 1.6,
         hue: SPRINKLE_COLORS[Math.floor(Math.random() * SPRINKLE_COLORS.length)][0],
@@ -159,9 +159,9 @@ if (donutCanvas) {
 
   function hsl(h, s, l, a = 1) { return `hsla(${h} ${s}% ${l}% / ${a})`; }
 
-  // 画“面团”层（温暖的烘焙色）
+  // Draw dough layer
   function drawDough(d) {
-    // 投影（地面影）
+    // Shadow
     ctx.save();
     ctx.translate(d.x, d.y + d.rOuter * 0.65);
     ctx.scale(1, 0.35);
@@ -174,7 +174,7 @@ if (donutCanvas) {
     ctx.fill();
     ctx.restore();
 
-    // 面团本体（内外双层径向渐变，给一点烘烤深色边）
+    // Dough body
     ctx.save();
     ctx.translate(d.x, d.y);
     const doughGrad = ctx.createRadialGradient(0, 0, d.rInner * 0.7, 0, 0, d.rOuter);
@@ -188,7 +188,7 @@ if (donutCanvas) {
     ctx.restore();
   }
 
-  // 糖霜波浪环（外缘/内缘带微小起伏）
+  // Icing wave ring
   function drawIcing(d) {
     ctx.save();
     ctx.translate(d.x, d.y);
@@ -198,7 +198,7 @@ if (donutCanvas) {
     const waveOuter = d.rOuter * 0.06;
     const waveInner = d.rInner * 0.12;
 
-    // 外缘路径
+    // Outer path
     ctx.beginPath();
     for (let i = 0; i <= steps; i++) {
       const a = (i / steps) * Math.PI * 2;
@@ -207,7 +207,7 @@ if (donutCanvas) {
       const y = Math.sin(a) * r;
       i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }
-    // 内缘路径（反向）
+    // Inner path
     for (let i = steps; i >= 0; i--) {
       const a = (i / steps) * Math.PI * 2;
       const r = d.rInner * 1.15 + Math.sin(a * 2.5 + d.t * 0.018) * waveInner;
@@ -216,21 +216,21 @@ if (donutCanvas) {
       ctx.lineTo(x, y);
     }
 
-    // 糖霜渐变
+    // Icing gradient
     const icingGrad = ctx.createRadialGradient(0, -d.rOuter * 0.2, d.rInner * 0.3, 0, 0, d.rOuter);
     icingGrad.addColorStop(0, hsl(d.hueLight, d.satLight, d.litLight, 0.95));
     icingGrad.addColorStop(1, hsl(d.hueBase, d.satBase, d.litBase, 0.95));
     ctx.fillStyle = icingGrad;
     ctx.fill();
 
-    // 顶部高光弧
+    // Top highlight arc
     ctx.beginPath();
     ctx.strokeStyle = "rgba(255,255,255,0.35)";
     ctx.lineWidth = 2;
     ctx.arc(0, 0, d.rOuter * 0.78, -Math.PI * 0.85, -Math.PI * 0.45);
     ctx.stroke();
 
-    // 内圈阴影（让洞更有深度）
+    // Inner shadow
     const innerGrad = ctx.createRadialGradient(0, 0, d.rInner * 0.7, 0, 0, d.rInner * 1.15);
     innerGrad.addColorStop(0, "rgba(0,0,0,0.25)");
     innerGrad.addColorStop(1, "rgba(0,0,0,0)");
@@ -240,9 +240,9 @@ if (donutCanvas) {
     ctx.arc(0, 0, d.rInner * 0.9, 0, Math.PI * 2, true);
     ctx.fill();
 
-    // 彩色糖针（落在糖霜带上）
+    // Sprinkles
     d.sprinkles.forEach(s => {
-      // 在糖霜厚度范围内随机半径
+      // Random radius within icing thickness
       if (s.rad == null) {
         s.rad = d.rInner * 1.15 + Math.random() * (d.rOuter * 0.92 - d.rInner * 1.15);
       }
@@ -252,7 +252,7 @@ if (donutCanvas) {
       ctx.translate(x, y);
       ctx.rotate(s.tilt);
       ctx.fillStyle = `hsl(${s.hue} ${s.sat}% ${s.lit}%)`;
-      // 画一个小胶囊（糖针）
+      // Draw sprinkle
       const w = s.len, h = s.thk, r = h / 2;
       ctx.beginPath();
       ctx.moveTo(-w/2 + r, -h/2);
@@ -280,7 +280,7 @@ if (donutCanvas) {
       d.x += Math.sin(d.t * d.swayFreq) * (d.swayAmp * 0.02);
       d.rot += d.rotSpeed;
 
-      // 循环上浮
+      // Loop upward
       if (d.y + d.rOuter < 0) {
         d.y = donutCanvas.height + d.rOuter + Math.random() * 40;
         d.x = Math.random() * donutCanvas.width;
@@ -297,13 +297,13 @@ if (donutCanvas) {
 // Week 3 Enhancements
 // ------------------------------
 
-// 选出 Week 3 这块
+// Select Week 3 section
 const week3Entry = Array.from(document.querySelectorAll(".entry")).find(e =>
   e.innerHTML.includes("Reflection: FLASK III and FETCH")
 );
 
 if (week3Entry) {
-  // 滚动进入时淡入显示
+  // Fade in on scroll
   function fadeInWeek3() {
     const rect = week3Entry.getBoundingClientRect();
     if (rect.top < window.innerHeight - 100) {
@@ -315,7 +315,7 @@ if (week3Entry) {
   }
   window.addEventListener("scroll", fadeInWeek3);
 
-  // 标题呼吸光
+  // Title breathing light
   const week3Title = week3Entry.querySelector(".title");
   if (week3Title) {
     setInterval(() => {
@@ -323,7 +323,7 @@ if (week3Entry) {
     }, 600);
   }
 
-  // 鼠标悬停 → 背景空气变色
+  // Mouse hover effect
   week3Entry.addEventListener("mouseenter", () => {
     week3Entry.style.transition = "background 2s";
     week3Entry.style.background = "rgba(20, 35, 55, 0.9)";
@@ -714,6 +714,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Enhanced Fighting Game with Real Sprites and Video Background
+// Simplified Fighting Game - No Color Tinting
 (function() {
   const canvas = document.getElementById('fightingGame');
   if (!canvas) return;
@@ -739,7 +740,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener('resize', resizeCanvas);
   
   const gravity = 0.8;
-  const groundY = 340;
+  const groundY = 380;
   const p_height = 150;
   const p_width = 50;
   
@@ -756,27 +757,42 @@ document.addEventListener("DOMContentLoaded", () => {
       this.framesElapsed = 0;
       this.framesHold = 5;
       this.offset = offset;
+      this.imageLoaded = false;
+      
+      this.image.onload = () => {
+        this.imageLoaded = true;
+        console.log('Image loaded:', imageSrc);
+      };
+      
+      this.image.onerror = () => {
+        console.error('Failed to load image:', imageSrc);
+      };
     }
     
     draw() {
-      if (!this.image.complete) return;
+      if (!this.imageLoaded || !this.image.complete) return;
       
-      ctx.drawImage(
-        this.image,
-        this.frameCurrent * (this.image.width / this.framesMax),
-        0,
-        this.image.width / this.framesMax,
-        this.image.height,
-        this.position.x - this.offset.x,
-        this.position.y - this.offset.y,
-        (this.image.width / this.framesMax) * this.scale,
-        this.image.height * this.scale
-      );
+      try {
+        ctx.drawImage(
+          this.image,
+          this.frameCurrent * (this.image.width / this.framesMax),
+          0,
+          this.image.width / this.framesMax,
+          this.image.height,
+          this.position.x - this.offset.x,
+          this.position.y - this.offset.y,
+          (this.image.width / this.framesMax) * this.scale,
+          this.image.height * this.scale
+        );
+      } catch (e) {
+        console.error('Error drawing sprite:', e);
+      }
     }
     
-    animateFrames() {
-      this.framesElapsed++;
-      if (this.framesElapsed % this.framesHold === 0) {
+    animateFrames(deltaTime = 1) {
+      this.framesElapsed += deltaTime;
+      if (this.framesElapsed >= this.framesHold) {
+        this.framesElapsed -= this.framesHold; // Preserve remainder instead of resetting to 0
         if (this.frameCurrent < this.framesMax - 1) {
           this.frameCurrent++;
         } else {
@@ -792,9 +808,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     
-    update() {
+    update(deltaTime = 1) {
       this.draw();
-      this.animateFrames();
+      this.animateFrames(deltaTime);
     }
   }
   
@@ -802,8 +818,8 @@ document.addEventListener("DOMContentLoaded", () => {
     constructor({
       position,
       velocity,
-      color = '#ff0000',
       isPlayer = true,
+      glowColor = '#00ff00',
       sprites
     }) {
       super({
@@ -816,7 +832,7 @@ document.addEventListener("DOMContentLoaded", () => {
       
       this.velocity = velocity;
       this.isPlayer = isPlayer;
-      this.color = color;
+      this.glowColor = glowColor;
       this.health = 100;
       this.maxHealth = 100;
       this.facing = isPlayer ? 'right' : 'left';
@@ -833,60 +849,22 @@ document.addEventListener("DOMContentLoaded", () => {
         offset: { x: 0, y: 20 }
       };
       
+      // Load all sprite images
       for (const key in this.sprites) {
         const sprite = this.sprites[key];
         sprite.image = new Image();
         sprite.image.src = sprite.imageSrc;
+        sprite.imageLoaded = false;
         
-        if (color !== '#ff0000') {
-          sprite.image.onload = () => {
-            sprite.tintedImage = this.generateTintedImage(sprite.image);
-          };
-        }
-      }
-    }
-    
-    generateTintedImage(img) {
-      if (!this.color || this.color === '#ff0000') return img;
-      
-      const buffer = document.createElement('canvas');
-      buffer.width = img.width;
-      buffer.height = img.height;
-      const bufCtx = buffer.getContext('2d');
-      
-      bufCtx.drawImage(img, 0, 0);
-      
-      const imageData = bufCtx.getImageData(0, 0, buffer.width, buffer.height);
-      const data = imageData.data;
-      const targetColor = this.hexToRgb(this.color);
-      
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+        sprite.image.onload = () => {
+          sprite.imageLoaded = true;
+          console.log(`${isPlayer ? 'Player' : 'AI'} sprite loaded:`, key, sprite.imageSrc);
+        };
         
-        if (a > 0) {
-          const isRed = r > g && r > b && r > 120 && g < 100 && b < 100 &&
-                        (r - g) > 50 && (r - b) > 50;
-          
-          if (isRed) {
-            const intensity = r / 255;
-            data[i] = targetColor.r * intensity;
-            data[i + 1] = targetColor.g * intensity;
-            data[i + 2] = targetColor.b * intensity;
-          }
-        }
+        sprite.image.onerror = () => {
+          console.error(`Failed to load ${isPlayer ? 'Player' : 'AI'} sprite:`, key, sprite.imageSrc);
+        };
       }
-      
-      bufCtx.putImageData(imageData, 0, 0);
-      return buffer;
-    }
-    
-    hexToRgb(hex) {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-      } : { r: 255, g: 0, b: 0 };
     }
     
     setState(newState) {
@@ -894,14 +872,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!this.sprites[newState]) return;
       
       const sprite = this.sprites[newState];
-      this.image = sprite.tintedImage || sprite.image;
+      this.image = sprite.image;
+      this.imageLoaded = sprite.imageLoaded;
       this.framesMax = sprite.framesMax;
       this.frameCurrent = 0;
+      this.framesElapsed = 0; // Reset frame timer
       this.offset = sprite.offset;
       this.state = newState;
     }
     
     draw() {
+      // Draw shadow
       const centerX = this.position.x + this.width / 2;
       const feetY = this.position.y + this.height;
       const distanceToGround = Math.max(0, groundY - feetY);
@@ -913,8 +894,17 @@ document.addEventListener("DOMContentLoaded", () => {
       ctx.ellipse(centerX, groundY + 20, 40 * shadowScale, 12 * shadowScale, 0, 0, Math.PI * 2);
       ctx.fill();
       
-      ctx.save();
+      // Draw glow effect
+      if (this.imageLoaded) {
+        ctx.save();
+        ctx.shadowColor = this.glowColor;
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      }
       
+      // Flip sprite if facing left
+      ctx.save();
       if (this.facing === 'left') {
         const imageWidth = (this.image.width / this.framesMax) * this.scale;
         const drawX = this.position.x - this.offset.x;
@@ -923,36 +913,43 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.translate(-(drawX + imageWidth / 2), -this.position.y);
       }
       
+      // Draw sprite
       super.draw();
       ctx.restore();
+      
+      if (this.imageLoaded) {
+        ctx.restore();
+      }
     }
     
-    update() {
+    update(deltaTime = 1) {
       this.draw();
-      this.animateFrames();
+      this.animateFrames(deltaTime);
       this.updateAttackBox();
       
-      this.position.x += this.velocity.x;
-      this.position.y += this.velocity.y;
+      // Apply velocity with delta time for frame-rate independence
+      this.position.x += this.velocity.x * deltaTime;
+      this.position.y += this.velocity.y * deltaTime;
       
       if (this.position.x < 0) this.position.x = 0;
       if (this.position.x > canvas.width - this.width) {
         this.position.x = canvas.width - this.width;
       }
       
-      if (this.position.y + this.height + this.velocity.y >= groundY) {
+      if (this.position.y + this.height + this.velocity.y * deltaTime >= groundY) {
         this.velocity.y = 0;
         this.position.y = groundY - this.height;
         
         if (this.state !== 'attack' && this.state !== 'takeHit') {
-          if (this.velocity.x !== 0) {
+          // Use threshold to detect if actually moving (not just tiny velocity from friction)
+          if (Math.abs(this.velocity.x) > 0.1) {
             this.setState('run');
           } else {
             this.setState('idle');
           }
         }
       } else {
-        this.velocity.y += gravity;
+        this.velocity.y += gravity * deltaTime;
         
         if (this.velocity.y < 0) {
           this.setState('jump');
@@ -961,12 +958,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
       
-      this.velocity.x *= 0.85;
+      this.velocity.x *= Math.pow(0.85, deltaTime);
       
-      if (this.attackCooldown > 0) this.attackCooldown--;
-      if (this.attackCooldown === 0) this.isAttacking = false;
+      // Clear tiny velocity values to prevent drift and ensure clean idle state
+      if (Math.abs(this.velocity.x) < 0.01) {
+        this.velocity.x = 0;
+      }
       
-      if (this.hitCooldown > 0) this.hitCooldown--;
+      if (this.attackCooldown > 0) this.attackCooldown -= deltaTime;
+      if (this.attackCooldown <= 0) {
+        this.attackCooldown = 0;
+        this.isAttacking = false;
+      }
+      
+      if (this.hitCooldown > 0) this.hitCooldown -= deltaTime;
+      if (this.hitCooldown < 0) this.hitCooldown = 0;
     }
     
     updateAttackBox() {
@@ -1021,41 +1027,43 @@ document.addEventListener("DOMContentLoaded", () => {
   
   const spriteConfig = {
     idle: {
-      imageSrc: '/assets/character/Idle.png',
+      imageSrc: 'assets/character/Idle.png',
       framesMax: 8,
       offset: { x: 215, y: 157 }
     },
     run: {
-      imageSrc: '/assets/character/Run.png',
+      imageSrc: 'assets/character/Run.png',
       framesMax: 8,
       offset: { x: 215, y: 157 }
     },
     jump: {
-      imageSrc: '/assets/character/Jump.png',
+      imageSrc: 'assets/character/Jump.png',
       framesMax: 2,
       offset: { x: 215, y: 157 }
     },
     fall: {
-      imageSrc: '/assets/character/Fall.png',
+      imageSrc: 'assets/character/Fall.png',
       framesMax: 2,
       offset: { x: 215, y: 157 }
     },
     attack: {
-      imageSrc: '/assets/character/Attack.png',
+      imageSrc: 'assets/character/Attack.png',
       framesMax: 6,
       offset: { x: 215, y: 157 }
     },
     takeHit: {
-      imageSrc: '/assets/character/Take Hit.png',
+      imageSrc: 'assets/character/Take Hit.png',
       framesMax: 4,
       offset: { x: 215, y: 157 }
     }
   };
   
+  console.log('Creating fighters with sprite config:', spriteConfig);
+  
   const player = new Fighter({
     position: { x: 100, y: 0 },
     velocity: { x: 0, y: 0 },
-    color: '#00ff88',
+    glowColor: '#00ff00',
     isPlayer: true,
     sprites: JSON.parse(JSON.stringify(spriteConfig))
   });
@@ -1063,7 +1071,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const enemy = new Fighter({
     position: { x: canvas.width - 150, y: 0 },
     velocity: { x: 0, y: 0 },
-    color: '#ff4444',
+    glowColor: '#0099ff',
     isPlayer: false,
     sprites: JSON.parse(JSON.stringify(spriteConfig))
   });
@@ -1124,18 +1132,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   const keys = {};
-window.addEventListener('keydown', (e) => {
-  keys[e.key.toLowerCase()] = true;
-
-  if (e.key === 'Enter' && !gameActive) {
-    startGame();
-  }
-});
-
-window.addEventListener('keyup', (e) => {
-  keys[e.key.toLowerCase()] = false;
-});
-
+  window.addEventListener('keydown', (e) => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.key === 'Enter' && !gameActive) startGame();
+  });
+  
+  window.addEventListener('keyup', (e) => {
+    keys[e.key.toLowerCase()] = false;
+  });
   
   function updateHealthBars() {
     const playerPercent = (player.health / player.maxHealth) * 100;
@@ -1160,13 +1164,8 @@ window.addEventListener('keyup', (e) => {
     updateHealthBars();
     
     if (bgVideo) {
-    bgVideo.muted = false;
-    bgVideo.currentTime = 0;
-    bgVideo.volume = 0.6;  
-    bgVideo.play().catch(() => {
-      console.warn('Video play blocked');
-    });
-  }
+      bgVideo.play().catch(() => {});
+    }
     
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
@@ -1181,10 +1180,11 @@ window.addEventListener('keyup', (e) => {
   function endGame(reason) {
     gameActive = false;
     clearInterval(timerInterval);
+    
+    // Pause background video
     if (bgVideo) {
-    bgVideo.pause();
-    bgVideo.currentTime = 0;   // optional: reset to start
-  }
+      bgVideo.pause();
+    }
     
     let message = '';
     if (reason === 'time') {
@@ -1204,8 +1204,16 @@ window.addEventListener('keyup', (e) => {
     }, 2000);
   }
   
-  function gameLoop() {
+  function gameLoop(currentTime) {
     requestAnimationFrame(gameLoop);
+    
+    // Calculate delta time for frame-rate independent movement
+    if (!gameLoop.lastTime) gameLoop.lastTime = currentTime;
+    let deltaTime = (currentTime - gameLoop.lastTime) / 16.67; // Normalize to 60 FPS
+    gameLoop.lastTime = currentTime;
+    
+    // Clamp deltaTime to prevent large jumps (max 3 = 20 FPS minimum)
+    if (deltaTime > 3) deltaTime = 3;
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -1217,8 +1225,8 @@ window.addEventListener('keyup', (e) => {
       
       aiLogic();
       
-      player.update();
-      enemy.update();
+      player.update(deltaTime);
+      enemy.update(deltaTime);
       
       if (checkCollision(player, enemy)) {
         enemy.takeDamage(10);
@@ -1232,11 +1240,12 @@ window.addEventListener('keyup', (e) => {
       
       updateHealthBars();
     } else {
-      player.update();
-      enemy.update();
+      player.update(deltaTime);
+      enemy.update(deltaTime);
     }
   }
   
+  console.log('Game initialized. Press ENTER to start.');
   gameLoop();
 })();
 
@@ -1248,8 +1257,9 @@ window.addEventListener('keyup', (e) => {
   if (stageSelector && bgVideo) {
     function changeStage() {
       const selectedMap = stageSelector.value;
-      bgVideo.src = '/assets/background/' + selectedMap;
+      bgVideo.src = 'assets/background/' + selectedMap;
       bgVideo.load();
+      console.log('Stage changed to:', selectedMap);
     }
     
     stageSelector.addEventListener('change', changeStage);
