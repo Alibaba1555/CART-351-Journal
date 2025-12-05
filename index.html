@@ -172,8 +172,30 @@ I redesigned the site to look like a small “donut shop” web page rather than
     Flask routes, fetch communication, JSON results, and now real database logic.  
     It felt like stepping from “coding exercises” into something closer to real creative data tools.
   </div>
-   <button id="generatePattern">Generate Mini Pattern</button>
- 
+  
+  <div class="viz-controls">
+    <div class="control-row">
+      <label>Visualization:</label>
+      <select id="vizMode">
+        <option value="nebula">🌌 Nebula Cloud</option>
+        <option value="matrix">💚 Matrix Rain</option>
+        <option value="dna">🧬 DNA Helix</option>
+        <option value="network">🕸️ Neural Network</option>
+        <option value="galaxy">🌀 Galaxy Spiral</option>
+        <option value="waves">🌊 Data Waves</option>
+      </select>
+    </div>
+    
+    <div class="control-row">
+      <button id="randomizeViz" class="action-btn">🎲 Randomize</button>
+      <button id="resetViz" class="action-btn">🔄 Reset</button>
+      <button id="exportImg" class="action-btn">📸 Capture</button>
+    </div>
+    
+    <div class="stats">
+      <span id="particleCount">Particles: 0</span>
+      <span id="fpsCounter">FPS: 0</span>
+    </div>
   </div>
 </section>
 

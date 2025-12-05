@@ -431,101 +431,284 @@ if (week3Entry) {
 })();
 
 // =============================
-// Mini Pattern Generator (Week 7)
+// Enhanced Pattern Visualizer (Week 7)
 // =============================
-// 只在 Week 7 页面存在时运行
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("patternCanvas");
   if (!canvas) return;
+  
   const ctx = canvas.getContext("2d");
-  const btn = document.getElementById("generatePattern");
-  const toggleBtn = document.getElementById("toggleParticles");
+  const entry = document.querySelector(".entry.week7");
+  if (!entry) return;
 
-  const moods = ["happy", "neutral", "calm", "serene", "well"];
-  const colors = {
-    happy: "#ffb347",
-    neutral: "#9ecfff",
-    calm: "#8ff7d3",
-    serene: "#d3b0ff",
-    well: "#cfcfcf",
-  };
+  const vizModeSelect = document.getElementById("vizMode");
+  const randomizeBtn = document.getElementById("randomizeViz");
+  const resetBtn = document.getElementById("resetViz");
+  const exportBtn = document.getElementById("exportImg");
+  const particleCountSpan = document.getElementById("particleCount");
+  const fpsSpan = document.getElementById("fpsCounter");
 
-  let dots = [];
-  let centers = [];
-  let running = true;
-
+  let particles = [];
+  let mouseX = 0, mouseY = 0;
+  let currentVizMode = "nebula";
+  let frameCount = 0;
+  let lastFpsUpdate = Date.now();
+  
   function resizeCanvas() {
-    const entry = document.querySelector(".entry.week7");
-    if (!entry) return;
-
     const rect = entry.getBoundingClientRect();
     canvas.width = rect.width;
     canvas.height = rect.height;
-
-    centers = moods.map((m, i) => ({
-      mood: m,
-      x: (i + 0.5) * (canvas.width / moods.length),
-      y: canvas.height * 0.35
-    }));
   }
 
-  function buildDots() {
-    dots = [];
-    const total = 220;
-    for (let i = 0; i < total; i++) {
-      const c = centers[Math.floor(Math.random() * centers.length)];
-      dots.push({
-        mood: c.mood,
-        x: c.x + (Math.random() - 0.5) * 60,
-        y: c.y + (Math.random() - 0.5) * 60,
-        vx: (Math.random() - 0.5) * 0.6,
-        vy: (Math.random() - 0.5) * 0.6,
-        r: 3 + Math.random() * 3
-      });
+  class Particle {
+    constructor(x, y) {
+      this.x = x || Math.random() * canvas.width;
+      this.y = y || Math.random() * canvas.height;
+      this.vx = (Math.random() - 0.5) * 2;
+      this.vy = (Math.random() - 0.5) * 2;
+      this.size = Math.random() * 3 + 1;
+      this.hue = Math.random() * 360;
+      this.alpha = Math.random() * 0.5 + 0.5;
+      this.trail = [];
+      this.maxTrail = 10;
     }
-  }
 
-  function draw() {
-    requestAnimationFrame(draw);
-    if (!running) return;
+    update() {
+      const dx = mouseX - this.x;
+      const dy = mouseY - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist < 150) {
+        const force = (150 - dist) / 150;
+        this.vx += dx * force * 0.01;
+        this.vy += dy * force * 0.01;
+      }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+      this.x += this.vx;
+      this.y += this.vy;
+      this.vx *= 0.98;
+      this.vy *= 0.98;
 
-    for (const d of dots) {
-      d.x += d.vx;
-      d.y += d.vy;
+      if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+      if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      
+      this.x = Math.max(0, Math.min(canvas.width, this.x));
+      this.y = Math.max(0, Math.min(canvas.height, this.y));
 
-      if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
-      if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
+      this.trail.unshift({x: this.x, y: this.y});
+      if (this.trail.length > this.maxTrail) this.trail.pop();
+    }
 
-      ctx.fillStyle = colors[d.mood];
+    draw() {
+      for (let i = 0; i < this.trail.length; i++) {
+        const t = this.trail[i];
+        const alpha = (1 - i / this.trail.length) * this.alpha * 0.3;
+        ctx.fillStyle = `hsla(${this.hue}, 70%, 60%, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, this.size * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2);
+      gradient.addColorStop(0, `hsla(${this.hue}, 90%, 70%, ${this.alpha})`);
+      gradient.addColorStop(1, `hsla(${this.hue}, 90%, 50%, 0)`);
+      
+      ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
       ctx.fill();
     }
   }
 
-  resizeCanvas();
-  buildDots();
-  draw();
+  function initParticles() {
+    particles = [];
+    let count = 200;
 
-  if (btn) {
-    btn.addEventListener("click", () => {
-      resizeCanvas();
-      buildDots();
+    switch(currentVizMode) {
+      case "nebula":
+        count = 300;
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = Math.random() * Math.min(canvas.width, canvas.height) * 0.3;
+          const x = canvas.width / 2 + Math.cos(angle) * radius;
+          const y = canvas.height / 2 + Math.sin(angle) * radius;
+          particles.push(new Particle(x, y));
+        }
+        break;
+
+      case "matrix":
+        count = 150;
+        for (let i = 0; i < count; i++) {
+          const p = new Particle();
+          p.x = Math.random() * canvas.width;
+          p.y = Math.random() * canvas.height - canvas.height;
+          p.vx = 0;
+          p.vy = Math.random() * 3 + 2;
+          p.hue = 120;
+          p.trail.maxTrail = 30;
+          particles.push(p);
+        }
+        break;
+
+      case "dna":
+        count = 200;
+        for (let i = 0; i < count; i++) {
+          const p = new Particle();
+          p.angle = (i / count) * Math.PI * 4;
+          p.radius = Math.min(canvas.width, canvas.height) * 0.2;
+          p.x = canvas.width / 2 + Math.cos(p.angle) * p.radius;
+          p.y = canvas.height / 2 + Math.sin(p.angle) * p.radius * 0.3;
+          p.hue = i % 2 === 0 ? 200 : 300;
+          particles.push(p);
+        }
+        break;
+
+      case "network":
+        count = 100;
+        for (let i = 0; i < count; i++) {
+          particles.push(new Particle());
+        }
+        break;
+
+      case "galaxy":
+        count = 400;
+        for (let i = 0; i < count; i++) {
+          const angle = (i / count) * Math.PI * 4 + Math.random() * 0.5;
+          const radius = (i / count) * Math.min(canvas.width, canvas.height) * 0.4;
+          const x = canvas.width / 2 + Math.cos(angle) * radius;
+          const y = canvas.height / 2 + Math.sin(angle) * radius;
+          const p = new Particle(x, y);
+          p.hue = (i / count) * 360;
+          particles.push(p);
+        }
+        break;
+
+      case "waves":
+        count = 250;
+        for (let i = 0; i < count; i++) {
+          const p = new Particle();
+          p.x = (i / count) * canvas.width;
+          p.y = canvas.height / 2 + Math.sin(i * 0.1) * 50;
+          p.hue = (i / count) * 360;
+          particles.push(p);
+        }
+        break;
+    }
+
+    particleCountSpan.textContent = `Particles: ${particles.length}`;
+  }
+
+  function drawConnections() {
+    if (currentVizMode !== "network") return;
+    
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < 100) {
+          const alpha = (100 - dist) / 100 * 0.3;
+          ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function renderDNA() {
+    if (currentVizMode !== "dna") return;
+    
+    for (let i = 0; i < particles.length - 1; i++) {
+      if (i % 2 === 0) {
+        const p1 = particles[i];
+        const p2 = particles[i + 1];
+        
+        ctx.strokeStyle = `rgba(100, 200, 255, 0.3)`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+    }
+    
+    particles.forEach((p, i) => {
+      p.angle += 0.01;
+      p.x = canvas.width / 2 + Math.cos(p.angle) * p.radius;
+      p.y = canvas.height / 2 + (i / particles.length - 0.5) * canvas.height * 0.8;
     });
   }
 
-  if (toggleBtn) {
-    toggleBtn.addEventListener("click", () => {
-      running = !running;
-      toggleBtn.textContent = running ? "Stop Background" : "Start Background";
+  function animate() {
+    requestAnimationFrame(animate);
+
+    ctx.fillStyle = 'rgba(15, 17, 26, 0.15)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach(p => {
+      p.update();
+      p.draw();
     });
+
+    drawConnections();
+    renderDNA();
+
+    frameCount++;
+    if (Date.now() - lastFpsUpdate > 1000) {
+      fpsSpan.textContent = `FPS: ${frameCount}`;
+      frameCount = 0;
+      lastFpsUpdate = Date.now();
+    }
   }
+
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+  });
+
+  vizModeSelect.addEventListener("change", (e) => {
+    currentVizMode = e.target.value;
+    initParticles();
+  });
+
+  randomizeBtn.addEventListener("click", () => {
+    particles.forEach(p => {
+      p.vx = (Math.random() - 0.5) * 4;
+      p.vy = (Math.random() - 0.5) * 4;
+      p.hue = Math.random() * 360;
+    });
+  });
+
+  resetBtn.addEventListener("click", () => {
+    initParticles();
+  });
+
+  exportBtn.addEventListener("click", () => {
+    const originalOpacity = canvas.style.opacity;
+    canvas.style.opacity = '1';
+    
+    setTimeout(() => {
+      const link = document.createElement('a');
+      link.download = `pattern_${currentVizMode}_${Date.now()}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+      
+      canvas.style.opacity = originalOpacity;
+    }, 100);
+  });
 
   window.addEventListener("resize", () => {
     resizeCanvas();
-    buildDots();
+    initParticles();
   });
-});
 
+  resizeCanvas();
+  initParticles();
+  animate();
+});
